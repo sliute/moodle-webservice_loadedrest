@@ -137,6 +137,13 @@ class server extends webservice_base_server {
 
         if (array_key_exists(static::PARAM_BODYFORMAT, $params)) {
             $this->formatname = $params[static::PARAM_BODYFORMAT];
+        } elseif (array_key_exists('HTTP_CONTENT_TYPE', $_SERVER)) {
+            $contenttypeparts = [];
+            preg_match('%^application/(.+)%',
+                    $_SERVER['HTTP_CONTENT_TYPE'], $contenttypeparts);
+            if (count($contenttypeparts) === 2) {
+                $this->formatname = $contenttypeparts[1];
+            }
         }
         $this->format = format_factory::create_or_default($this->formatname);
 
