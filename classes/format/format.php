@@ -26,6 +26,7 @@ namespace webservice_loadedrest\format;
 
 use Exception;
 use external_description;
+use invalid_parameter_exception;
 
 defined('MOODLE_INTERNAL') || die;
 
@@ -44,7 +45,10 @@ interface format {
      * Parse request body.
      *
      * @param string $body
+     *
      * @return mixed
+     *
+     * @throws invalid_parameter_exception
      */
     public function parse_request_body($body);
 

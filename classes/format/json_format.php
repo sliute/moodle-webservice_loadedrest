@@ -26,6 +26,7 @@ namespace webservice_loadedrest\format;
 
 use Exception;
 use external_description;
+use invalid_parameter_exception;
 
 defined('MOODLE_INTERNAL') || die;
 
@@ -44,7 +45,15 @@ class json_format extends abstract_format implements format {
      * @inheritdoc
      */
     public function parse_request_body($body) {
-        return json_decode($body, true);
+        json_decode('[]');
+        $result = json_decode($body, true);
+
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            throw new invalid_parameter_exception(
+                    'request body could not be parsed as valid json');
+        }
+
+        return $result;
     }
 
     /**

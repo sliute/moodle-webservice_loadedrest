@@ -30,6 +30,7 @@ use webservice_base_server;
 use webservice_loadedrest\format\format_factory;
 
 defined('MOODLE_INTERNAL') || die;
+require_once "{$CFG->libdir}/externallib.php";
 require_once "{$CFG->dirroot}/webservice/lib.php";
 
 /**
