@@ -27,6 +27,10 @@ namespace webservice_loadedrest\format;
 use coding_exception;
 use Exception;
 use external_description;
+use external_multiple_structure;
+use external_single_structure;
+use external_value;
+use invalid_parameter_exception;
 use XMLWriter;
 
 defined('MOODLE_INTERNAL') || die;
@@ -59,8 +63,19 @@ class xml_format extends abstract_format implements format {
     /**
      * @inheritdoc
      */
-    public function parse_request_body($body) {
-        throw new coding_exception('urgh, xml');
+    public function parse_request_body($body, external_description $description) {
+        $oldvalue = libxml_use_internal_errors(true);
+        $data = simplexml_load_string($body);
+        $errors = libxml_get_errors();
+        libxml_use_internal_errors($oldvalue);
+
+        if ($data === false) {
+            throw new invalid_parameter_exception(
+                    'mangled and hideous though it was, request body could not'
+                    . ' be parsed as valid xml');
+        }
+
+        return json_decode(json_encode($data), true);
     }
 
     /**
@@ -81,7 +96,7 @@ class xml_format extends abstract_format implements format {
         $doc->startDocument(static::VERSION, static::ENCODING);
             $doc->startElement('response');
                 $doc->startElement('success');
-                    $doc->text(0);
+                    $doc->text('false');
                 $doc->endElement();
                 $doc->startElement('exception');
                     $doc->startAttribute('class');
@@ -113,7 +128,9 @@ class xml_format extends abstract_format implements format {
         $doc = new XMLWriter();
         $doc->openMemory();
         $doc->startDocument(static::VERSION, static::ENCODING);
-        $this->to_xml($doc, $result, $description);
+            $doc->startElement('response');
+                $this->to_xml($doc, $result, $description);
+            $doc->endElement();
         $doc->endDocument();
         echo $doc->outputMemory();
     }
@@ -124,6 +141,38 @@ class xml_format extends abstract_format implements format {
      * @param XMLWriter $doc
      * @param $result
      * @param external_description $description
+     * @param string|null $key
      */
-    protected function to_xml(XMLWriter $doc, $result, external_description $description) {}
+    protected function to_xml(XMLWriter $doc, $result, external_description $description, $key=null) {
+        $singlekey = $key ?? 'value';
+
+        if ($description instanceof external_value) {
+            switch ($description->type) {
+                case PARAM_BOOL:
+                    $doc->startElement($singlekey);
+                    $doc->text($result ? 'true' : 'false');
+                    $doc->endElement();
+                    break;
+                default:
+                    $doc->startElement($singlekey);
+                    $doc->text($result);
+                    $doc->endElement();
+            }
+        } elseif ($description instanceof external_single_structure) {
+            $doc->startElement($singlekey);
+            foreach ($description->keys as $singlekey => $keydescription) {
+                $this->to_xml($doc, $result[$singlekey], $keydescription, $singlekey);
+            }
+            $doc->endElement();
+        } elseif ($description instanceof external_multiple_structure) {
+            $doc->startElement($singlekey);
+            foreach ($result as $resultitem) {
+                $this->to_xml($doc, $resultitem, $description->content, $singlekey);
+            }
+            $doc->endElement();
+        } else {
+            throw new coding_exception(sprintf(
+                    'unknown external_description type %s', get_class($description)));
+        }
+    }
 }
