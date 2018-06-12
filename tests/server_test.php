@@ -23,11 +23,10 @@
  */
 
 defined('MOODLE_INTERNAL') || die;
-global $CFG;
-require_once "{$CFG->libdir}/externallib.php";
-require_once "{$CFG->libdir}/webservice/loadedrest/locallib.php";
 
 /**
  * Loaded REST server test suite.
+ *
+ * @group webservice_loadedrest
  */
 class webservice_loadedrest_server_testcase extends advanced_testcase {}
