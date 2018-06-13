@@ -63,7 +63,7 @@ class xml_format extends abstract_format implements format {
     /**
      * @inheritdoc
      */
-    public function parse_request_body($body, external_description $description) {
+    public function parse_request_body($body) {
         $oldvalue = libxml_use_internal_errors(true);
         $data = simplexml_load_string($body);
         $errors = libxml_get_errors();

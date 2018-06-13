@@ -25,6 +25,8 @@
 use webservice_loadedrest\format\xml_format;
 
 defined('MOODLE_INTERNAL') || die;
+global $CFG;
+require_once  "{$CFG->dirroot}/lib/externallib.php";
 
 /**
  * Loaded REST server test suite.
